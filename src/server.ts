@@ -17,35 +17,9 @@ app.use(express.text());
 app.use(router);
 app.use(handleServerError);
 
-// const kafka = new Kafka({
-//   clientId: "my-app",
-//   brokers: ["kafka1:9092", "kafka2:9092"],
-// });
-
 const kafka = new Kafka({
   clientId: "my-app",
-  brokers: async () => {
-    // Example getting brokers from Confluent REST Proxy
-    const clusterResponse = await fetch("https://kafka-rest:8082/v3/clusters", {
-      //@ts-ignore
-      headers: "application/vnd.api+json",
-    }).then((response) => response.json());
-
-    const clusterUrl = clusterResponse.data[0].links.self;
-    console.log(clusterUrl);
-
-    const brokersResponse = await fetch(`${clusterUrl}/brokers`, {
-      //@ts-ignore
-      headers: "application/vnd.api+json",
-    }).then((response) => response.json());
-
-    //@ts-ignore
-    const brokers = brokersResponse.data.map((broker) => {
-      const { host, port } = broker.attributes;
-      return `${host}:${port}`;
-    });
-    return brokers;
-  },
+  brokers: ["localhost:9092"],
 });
 
 const producer = kafka.producer({
@@ -68,7 +42,7 @@ const sendKafkaMessage = async (topic: string, message: string) => {
 const connectToKafka = async () => {
   try {
     await sendKafkaMessage("test-topic", "Hello KafkaJS user!");
-    return "Message send to kafka!";
+    return "Connect to kafka and Message send!";
   } catch (error) {
     return Promise.reject(error);
   }
@@ -77,19 +51,13 @@ const connectToKafka = async () => {
 const getMessageFromKafka = async () => {
   try {
     const consumer = kafka.consumer({ groupId: "test-group" });
-    console.log(1);
-
     await consumer.connect();
-
-    console.log(2);
     await consumer.subscribe({ topic: "test-topic", fromBeginning: true });
-    console.log(3);
     await consumer.run({
       eachMessage: async ({ message }: any) => {
         console.log(chalk.greenBright(message.value));
       },
     });
-    console.log(4);
   } catch (error) {
     if (error instanceof Error) return Promise.reject(error);
   }
