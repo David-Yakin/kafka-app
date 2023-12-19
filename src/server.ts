@@ -30,7 +30,9 @@ const kafka = new Kafka({
       //@ts-ignore
       headers: "application/vnd.api+json",
     }).then((response) => response.json());
+
     const clusterUrl = clusterResponse.data[0].links.self;
+    console.log(clusterUrl);
 
     const brokersResponse = await fetch(`${clusterUrl}/brokers`, {
       //@ts-ignore
@@ -68,7 +70,7 @@ const connectToKafka = async () => {
     await sendKafkaMessage("test-topic", "Hello KafkaJS user!");
     return "Message send to kafka!";
   } catch (error) {
-    if (error instanceof Error) return Promise.reject(error);
+    return Promise.reject(error);
   }
 };
 
