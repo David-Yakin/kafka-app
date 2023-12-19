@@ -1,0 +1,7 @@
+curl \
+  -X POST \
+  -H "Content-Type: application/json" \
+  -H "Transfer-Encoding: chunked" \
+  -H "Authorization: Basic RzNCM1BUREk2VlpZTVRNWTpEYlBCR2t1M0luVzlkN0ZHTkhpT1FoV2tLdmlnemtpTjBRbmRxMmd4WHYydEdvUlZDZWJiaVZKRXFIbVRGeTF0" \
+  https://pkc-4nxnd.asia-east2.gcp.confluent.cloud:443/kafka/v3/clusters/lkc-x7nn1q/topics/my-test/records \
+  -T-
