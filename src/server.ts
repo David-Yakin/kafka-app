@@ -59,7 +59,7 @@ const sendKafkaMessage = async (topic: string, message: string) => {
     });
     await producer.disconnect();
   } catch (error) {
-    return error;
+    return Promise.reject(error);
   }
 };
 
@@ -68,22 +68,28 @@ const connectToKafka = async () => {
     await sendKafkaMessage("test-topic", "Hello KafkaJS user!");
     return "Message send to kafka!";
   } catch (error) {
-    if (error instanceof Error) return error.message;
+    if (error instanceof Error) return Promise.reject(error);
   }
 };
 
 const getMessageFromKafka = async () => {
   try {
     const consumer = kafka.consumer({ groupId: "test-group" });
+    console.log(1);
+
     await consumer.connect();
+
+    console.log(2);
     await consumer.subscribe({ topic: "test-topic", fromBeginning: true });
+    console.log(3);
     await consumer.run({
       eachMessage: async ({ message }: any) => {
         console.log(chalk.greenBright(message.value));
       },
     });
+    console.log(4);
   } catch (error) {
-    if (error instanceof Error) return error;
+    if (error instanceof Error) return Promise.reject(error);
   }
 };
 
