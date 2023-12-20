@@ -7,8 +7,10 @@ import router from "./router/router";
 import morgan from "./logger/morgan";
 import cors from "./cors/cors";
 import { handleServerError } from "./utils/handleErrors";
-const { EXPRESS_BASE_URL, EXPRESS_PORT } = process.env;
-import { Partitioners, Kafka } from "kafkajs";
+const { EXPRESS_PORT } = process.env;
+import { Partitioners, Kafka, Producer } from "kafkajs";
+import { getMessageFromKafka } from "./kafka/consumer";
+import { sendKafkaMessage } from "./kafka/producers";
 
 app.use(morgan);
 app.use(cors);
@@ -26,62 +28,18 @@ const producer = kafka.producer({
   createPartitioner: Partitioners.LegacyPartitioner,
 });
 
-const sendKafkaMessage = async (topic: string, message: string) => {
-  try {
-    await producer.connect();
-    await producer.send({
-      topic,
-      messages: [{ value: message }],
-    });
-    await producer.disconnect();
-  } catch (error) {
-    return Promise.reject(error);
-  }
-};
+const PORT = EXPRESS_PORT || 5000;
+app.listen(PORT, () => {
+  console.log(chalk.yellowBright(`listening on: "http://localhost: ${PORT}}`));
 
-const connectToKafka = async () => {
-  try {
-    await sendKafkaMessage("test-topic", "Hello KafkaJS user!");
-    return "Connect to kafka and Message send!";
-  } catch (error) {
-    return Promise.reject(error);
-  }
-};
-
-const getMessageFromKafka = async () => {
-  try {
-    const consumer = kafka.consumer({ groupId: "test-group" });
-    await consumer.connect();
-    await consumer.subscribe({ topic: "test-topic", fromBeginning: true });
-    await consumer.run({
-      eachMessage: async ({ message }: any) => {
-        console.log(chalk.greenBright(message.value));
-      },
-    });
-  } catch (error) {
-    if (error instanceof Error) return Promise.reject(error);
-  }
-};
-
-app.listen(EXPRESS_PORT, () => {
-  console.log(
-    chalk.yellowBright(`listening on: ${EXPRESS_BASE_URL}${EXPRESS_PORT}`)
-  );
-
-  connectToKafka()
-    .then((message) => {
-      console.log(chalk.greenBright(`ConnectToKafka message: ${message}`));
-      getMessageFromKafka()
-        .then((message) =>
-          console.log(
-            chalk.greenBright(`GetMessageFromKafka message: ${message}`)
-          )
+  sendKafkaMessage(producer, "test-topic", "Hello KafkaJS user!")
+    .then(() => {
+      console.log(chalk.magentaBright(`Connected Successful To Kafka`));
+      getMessageFromKafka(kafka, "test-group").catch((err) =>
+        console.log(
+          chalk.redBright(`GetMessageFromKafka Error: ${err.message}`)
         )
-        .catch((err) =>
-          console.log(
-            chalk.redBright(`GetMessageFromKafka Error: ${err.message}`)
-          )
-        );
+      );
     })
     .catch((error) =>
       console.log(chalk.redBright(`ConnectToKafka Error: ${error}`))

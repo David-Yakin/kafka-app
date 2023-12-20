@@ -7,7 +7,7 @@ const whiteList = [
 ];
 
 const corsOptions: CorsOptions = {
-  origin: whiteList,
+  origin: (origin) => !!whiteList.find((url) => url === origin),
 };
 
 const corsHandler = cors(corsOptions);
