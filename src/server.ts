@@ -1,34 +1,12 @@
 import express from "express";
 import chalk from "chalk";
 const app = express();
-import { config } from "dotenv";
-config();
-import router from "./router/router";
-import morgan from "./logger/morgan";
-import cors from "./cors/cors";
-import { handleServerError } from "./utils/handleErrors";
-const { EXPRESS_PORT } = process.env;
-import { Partitioners, Kafka, Producer } from "kafkajs";
 import { getMessageFromKafka } from "./kafka/consumer";
-import { sendKafkaMessage } from "./kafka/producers";
+import { sendKafkaMessage } from "./kafka/kafkaUtils";
+import kafka from "./kafka/kafkaInstance";
+import producer from "./kafka/kafkaProducer";
 
-app.use(morgan);
-app.use(cors);
-app.use(express.json());
-app.use(express.text());
-app.use(router);
-app.use(handleServerError);
-
-const kafka = new Kafka({
-  clientId: "my-app",
-  brokers: ["localhost:9092"],
-});
-
-const producer = kafka.producer({
-  createPartitioner: Partitioners.LegacyPartitioner,
-});
-
-const PORT = EXPRESS_PORT || 5000;
+const PORT = 5000;
 app.listen(PORT, () => {
   console.log(chalk.yellowBright(`listening on: "http://localhost: ${PORT}}`));
 
