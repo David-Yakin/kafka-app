@@ -13,7 +13,7 @@ app.listen(PORT, () => {
   sendKafkaMessage(producer, "test-topic", "Hello KafkaJS user!")
     .then(() => {
       console.log(chalk.magentaBright(`Connected Successful To Kafka`));
-      getMessageFromKafka(kafka, "test-group").catch((err) =>
+      getMessageFromKafka(kafka, "test-group", "test-topic").catch((err) =>
         console.log(
           chalk.redBright(`GetMessageFromKafka Error: ${err.message}`)
         )
